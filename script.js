@@ -15,7 +15,9 @@ const UTM_KEYS = [
 function captureUTM() {
   const params = new URLSearchParams(window.location.search);
 
-  // Capture the first landing page for this session
+  const hasUTM = UTM_KEYS.some((key) => params.has(key));
+
+  // Save the first landing page in this session
   if (!sessionStorage.getItem("artizen_landing_page")) {
     sessionStorage.setItem(
       "artizen_landing_page",
@@ -23,14 +25,7 @@ function captureUTM() {
     );
   }
 
-  if (!sessionStorage.getItem("artizen_referrer")) {
-    sessionStorage.setItem(
-      "artizen_referrer",
-      document.referrer || ""
-    );
-  }
-
-  // Capture campaign information when present
+  // Update campaign details whenever UTM parameters are present
   UTM_KEYS.forEach((key) => {
     const value = params.get(key);
 
@@ -38,6 +33,14 @@ function captureUTM() {
       sessionStorage.setItem(key, value);
     }
   });
+
+  // Capture referrer
+  if (!sessionStorage.getItem("artizen_referrer")) {
+    sessionStorage.setItem(
+      "artizen_referrer",
+      document.referrer || ""
+    );
+  }
 }
 
 function getUTMData() {
