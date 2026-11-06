@@ -1,6 +1,60 @@
 
 
+/* ==========================================
+   ARTIZEN - UTM TRACKING
+========================================== */
 
+const UTM_KEYS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term"
+];
+
+function captureUTM() {
+  const params = new URLSearchParams(window.location.search);
+
+  // Capture the first landing page for this session
+  if (!sessionStorage.getItem("artizen_landing_page")) {
+    sessionStorage.setItem(
+      "artizen_landing_page",
+      window.location.href
+    );
+  }
+
+  if (!sessionStorage.getItem("artizen_referrer")) {
+    sessionStorage.setItem(
+      "artizen_referrer",
+      document.referrer || ""
+    );
+  }
+
+  // Capture campaign information when present
+  UTM_KEYS.forEach((key) => {
+    const value = params.get(key);
+
+    if (value) {
+      sessionStorage.setItem(key, value);
+    }
+  });
+}
+
+function getUTMData() {
+  return {
+    utm_source: sessionStorage.getItem("utm_source") || null,
+    utm_medium: sessionStorage.getItem("utm_medium") || null,
+    utm_campaign: sessionStorage.getItem("utm_campaign") || null,
+    utm_content: sessionStorage.getItem("utm_content") || null,
+    utm_term: sessionStorage.getItem("utm_term") || null,
+    landing_page:
+      sessionStorage.getItem("artizen_landing_page") || null,
+    referrer:
+      sessionStorage.getItem("artizen_referrer") || null
+  };
+}
+
+captureUTM();
 
 /* =========================================================
    SETTINGS: edit these
@@ -319,7 +373,9 @@ bookingForm.addEventListener("submit", async (e) => {
         guest_selection: bigGroup ? "Custom count" : guests,
         guest_count: guestCount,
         cafe_location: location,
-        occasion: occasion
+        occasion: occasion,
+        // UTM tracking
+    ...getUTMData()
       });
 
     if (error) throw error;
@@ -348,8 +404,7 @@ bookingForm.addEventListener("submit", async (e) => {
       console.warn("Tracking error:", trackingError);
     }
 
-    // STEP 3: Show submission result
-    // STEP 3: Track successful booking
+ // STEP 3: Track successful booking
 try {
   if (typeof track === "function") {
     track("booking_submit");
@@ -367,8 +422,8 @@ if (emailError) {
   console.error("Email notification failed:", emailError);
 }
 
-// STEP 5: Redirect to Thank You page
-window.location.href = 'thank-you/';
+// STEP 5: Redirect after successful database save
+window.location.href = "thank-you/";
 return;
 
     // Restore default guest selection
@@ -674,7 +729,10 @@ if (enquiryForm) {
           guest_selection: guests,
           guest_count: guestCount,
           cafe_location: location,
-          occasion: occasion || event
+          occasion: occasion || event,
+
+          // UTM tracking
+         ...getUTMData()
         });
 
       if (error) throw error;
