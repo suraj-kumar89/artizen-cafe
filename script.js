@@ -355,7 +355,7 @@ bookingForm.addEventListener("submit", async (e) => {
     bookingForm.appendChild(status);
   }
 
-  status.textContent = "Saving your booking...";
+  status.textContent = "Saving your enquiry...";
 
   try {
     if (!window.supabase || !supabaseClient) {
